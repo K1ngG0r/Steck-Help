@@ -1,78 +1,123 @@
-﻿#include <iostream>
+#include <iostream>
 
-class String
-{
+template<typename T>
+class LinkedList {
 private:
-	char* string;
-	int size;
+    class Node {
+    public:
+        T value;
+        Node* next;
+        Node() :value{ 0 }, next{ nullptr } {}
+        Node(T value) : value{ value }, next{ nullptr } {}
+    };
+    Node* first;
+    Node* last;
 public:
-	String() :string{ nullptr }, size{ 0 }{}
-	String(int size) : string{new char[size]}, size{size}{}
-	~String(){
-		delete[] string;
-		string = nullptr;
-		size = 0;
-	}
+    LinkedList() :first{ nullptr }, last{ nullptr } {}
 
-	friend std::istream& operator >>(std::istream& in, String& str) {
-		for (size_t i = 0; i < str.size; i++)
-		{
-			if (str.string[i] == ';') {
-				str.size = i;
-				return in;
-			}
-			else
-				in >> str.string[i];
-		}
-		return in;
-	}
+    LinkedList(const LinkedList& list) : LinkedList()
+    {
+        Node* current = list._first;
+        while (current)
+        {
+            Push(current->value);
+            current = current->next;
+        }
+    }
+    
+    ~LinkedList() {
+        if (!IsEmpty()) {
+            Node* current = first->next;
+            while (current != nullptr) {
+                delete first;
+                first = current;
+                current = current->next;
+            }
+            delete first;
+            first = nullptr;
+            last = nullptr;
+        }
+    }
 
-	int Size() {
-		int size = 0;
-		while (string[size++] != ';' &&  size < strlen(string)) {}
-		if (size == this->size) {
-			std::cout << "Enter ';' in end!" << std::endl;
-			std::cin >> *this;
-		}
-		return size-1;
-	}
+    LinkedList& Push(T value) {
+        Node* node = new Node(value);
+        if (IsEmpty()) {
+            first = node;
+            last = node;
+            return *this;
+        }
+        last->next = node;
+        last = node;
+    }
 
-	int Check() {
-		bool good = true;
-		for (size_t i = 0; i < Size(); i++)
-		{
-			switch (string[i])
-			{
-			case '(':
-				for (size_t j = Size()-i; j > 0; j--)
-					if (string[j] == ')'){ 
-						break;
-					}
-				return i;
-				break;
-			default:
-				break;
-			}
-		}
-		return -1;
-	}
-	
-	friend std::ostream& operator <<(std::ostream& out, String& str) {
-		int i = 0;
-		char last;
-		while (str.string[i] != ';' && i!=str.size) {
-			out << str.string[i++];
-		}
-		return out;
-	}
+    bool IsEmpty() const {
+        return first == nullptr;
+    }
+
+    int Size() {
+        int count = 0;
+        Node* current = first->next;
+        while (current != nullptr) {
+            count++;
+            current = current->next;
+        }
+        return count;
+    }
+
+
+    friend std::ostream& operator <<(std::ostream& out, const LinkedList& list) {
+        if (!list.IsEmpty()) {
+            Node* current = list.first;
+            while (current != nullptr) {
+                out << current->value << '\t';
+                current = current->next;
+            }
+        }
+        else
+            out << "List is empty" << std::endl;
+        return out;
+    }
+
+    friend LinkedList& operator+(const LinkedList& one, const LinkedList& two) {
+        LinkedList<T> tmp{};
+        Node* current_1 = one.first;
+        Node* current_2 = two.first;
+        while (current_1 != nullptr) {
+            tmp.Push(current_1->value);
+            current_1 = current_1->next;
+        }
+        while (current_2 != nullptr) {
+            tmp.Push(current_2->value);
+            current_2 = current_2->next;
+        }
+        tmp.last = one.last;
+        tmp.last->next = two.first;
+        tmp.last = two.last;
+        tmp.first = one.first;
+        return tmp;
+    } 
 };
-
 
 int main()
 {
-	String str(20);
-	std::cin >> str;
-	std::cout << str << std::endl;
-	std::cout << "##" << str.Check() << std::endl;
+    LinkedList<int> arr;
+    LinkedList<int> arra;
 
+    arr.Push(5);
+    arr.Push(2);
+    arr.Push(3);
+    arr.Push(10);
+    arr.Push(1);
+    std::cout << arr << std::endl;
+
+    arra.Push(1);
+    arra.Push(2);
+    arra.Push(3);
+    arra.Push(4);
+    arra.Push(5);
+    std::cout << arra << std::endl;
+
+    LinkedList<int> sum = arr + arra;
+    std::cout << "happy" << std::endl;//тест сборки
+    std::cout << sum << std::endl;
 }
